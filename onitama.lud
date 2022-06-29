@@ -1,0 +1,62 @@
+// Unfortunately, kinda verbose
+(define "CobraWalk1" {{L F} {F R F} {R F R F}})
+(define "CobraWalk2" {{L L L F} {L L F R F} {L L R F R F}})
+(define "BoarWalk1" {{F} {R F} {L F}})
+(define "BoarWalk2" {{L L F} {L L R F} {L L L F}})
+(define "DragonWalk1" {{F L F F} {F R F F} {L L F R F} {L L F L F}})
+(define "DragonWalk2" {{L L F L F F} {L L F R F F} {L L L L F R F} {L L L L F L F}})
+(define "FrogWalk1" {{L F F} {L F R F} {R F R F}})
+(define "FrogWalk2" {{L L L F F} {L L L F R F} {L L R F R F}})
+(define "RabbitWalk1" {{F R F} {R F F} {L F L F}})
+(define "RabbitWalk2" {{L L F R F} {L L R F F} {L L L F L F}})
+
+
+// (to) that moves to a empty place or captures an enemy piece there
+(define "MoveAndCapture" (to if:(or (is Empty (to)) (is Enemy (who at:(to))))
+                             (apply (if (is Enemy (who at:(to))) (remove (to))))))
+
+// Generates a move that follows onitama's movement rules
+// Arg #1: Symbol of the card to use for the moves
+// Arg #2: 1 or 2, meaning P1 or P2. Mirrors the move for P2
+(define "OnitamaMove" (move Leap
+                            "#1Walk#2"
+                            rotations:False
+                            "MoveAndCapture"))
+
+// Generates two moves, one for P1 and another mirrored for P2
+// Arg #1: Symbol of the card to use for the moves
+// Example: ("MirrorCardMove" Cobra)
+(define "MirrorCardMove" (if (is Mover P1)
+                           ("OnitamaMove" #1 1)
+                           ("OnitamaMove" #1 2)))
+
+(game "Onitama"
+      (players {(player N) (player S)})
+      (equipment {(board (square 5))
+                  (piece "pawn" ("MirrorCardMove" Rabbit))
+                  (piece "king" Each ("MirrorCardMove" Rabbit))
+
+                  (hand Each size:2)
+
+                  (regions "throne" P1 (sites {"C1"}))
+                  (regions "throne" P2 (sites {"C5"}))})
+
+      (rules (start {(place "pawn1" {"A1" "B1" "D1" "E1"})
+                     (place "king1" {"C1"})
+                     (place "pawn2" {"A5" "B5" "D5" "E5"})
+                     (place "king2" {"C5"})})
+
+             (play (forEach Piece))
+
+             (end (if (no Moves Next) (result Mover Win)))))
+
+(metadata
+ (graphics {(board Style Chess)
+
+            (player Colour P1 (colour Red))
+            (player Colour P2 (colour Blue))
+
+            (region Colour "throne" P1 (colour 255 0 127))
+            (region Colour "throne" P2 (colour 127 0 255))
+
+            (hand Placement Each scale:1.0 offsetX:0.5 offsetY:0.5 vertical:True)}))
