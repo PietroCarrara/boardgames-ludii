@@ -10,7 +10,6 @@
 (define "RabbitWalk1" {{F R F} {R F F} {L F L F}})
 (define "RabbitWalk2" {{L L F R F} {L L R F F} {L L L F L F}})
 
-
 // (to) that moves to a empty place or captures an enemy piece there
 (define "MoveAndCapture" (to if:(or (is Empty (to)) (is Enemy (who at:(to))))
                              (apply (if (is Enemy (who at:(to))) (remove (to))))))
@@ -32,11 +31,11 @@
 
 (game "Onitama"
       (players {(player N) (player S)})
+
       (equipment {(board (square 5))
-                  (piece "pawn" Each (or ("MirrorCardMove" Cobra)
-                                         ("MirrorCardMove" Boar)))
-                  (piece "king" Each (or ("MirrorCardMove" Cobra)
-                                         ("MirrorCardMove" Boar)))
+
+                  (piece "pawn" Each)
+                  (piece "king" Each)
 
                   (hand Each size:2)
 
@@ -48,13 +47,18 @@
                      (place "pawn2" {"A5" "B5" "D5" "E5"})
                      (place "king2" {"C5"})})
 
-             (play (forEach Piece))
+             (play (forEach Piece (or ("MirrorCardMove" Cobra)
+                                      ("MirrorCardMove" Boar))))
 
-             (end {(if (no Moves Next)
-                     (result Mover Win))
-                   (if (= (where "king" P2) -1)
+             (end {(if (no Moves Mover)
+                     (result Mover Loss))
+                   (if (= (where "king" P2) Off)
                      (result P1 Win))
-                   (if (= (where "king" P1) -1)
+                   (if (= (where "king" P1) Off)
+                     (result P2 Win))
+                   (if (= (where "king" P1) 22)
+                     (result P1 Win))
+                   (if (= (where "king" P2) 2)
                      (result P2 Win))})))
 
 (metadata
@@ -64,6 +68,4 @@
             (player Colour P2 (colour Blue))
 
             (region Colour "throne" P1 (colour 255 0 127))
-            (region Colour "throne" P2 (colour 127 0 255))
-
-            (hand Placement Each scale:1.0 offsetX:0.5 offsetY:0.5 vertical:True)}))
+            (region Colour "throne" P2 (colour 127 0 255))}))
