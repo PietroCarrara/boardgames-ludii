@@ -33,8 +33,10 @@
 (game "Onitama"
       (players {(player N) (player S)})
       (equipment {(board (square 5))
-                  (piece "pawn" ("MirrorCardMove" Rabbit))
-                  (piece "king" Each ("MirrorCardMove" Rabbit))
+                  (piece "pawn" Each (or ("MirrorCardMove" Cobra)
+                                         ("MirrorCardMove" Boar)))
+                  (piece "king" Each (or ("MirrorCardMove" Cobra)
+                                         ("MirrorCardMove" Boar)))
 
                   (hand Each size:2)
 
@@ -48,7 +50,12 @@
 
              (play (forEach Piece))
 
-             (end (if (no Moves Next) (result Mover Win)))))
+             (end {(if (no Moves Next)
+                     (result Mover Win))
+                   (if (= (where "king" P2) -1)
+                     (result P1 Win))
+                   (if (= (where "king" P1) -1)
+                     (result P2 Win))})))
 
 (metadata
  (graphics {(board Style Chess)
