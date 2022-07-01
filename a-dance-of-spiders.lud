@@ -1,0 +1,47 @@
+(define "Center" 24) // Center vertex index
+
+(define "Horizontal" 1)
+(define "Vertical" 2)
+(define "Diagonal" 3)
+
+(define "SpiderMoveFstH" (move Slide
+                               (union Leftward Rightward)
+                               (then (and {(if (and (is Empty (last From)) (= (last From) "Center"))
+                                             (add (piece "cross0") (to (last From)))) 
+                                           (set Var "moveType" "Horizontal") 
+                                           (moveAgain)}))))
+
+(define "SpiderMoveFstV" (move Slide 
+                               (union Forward Backward)
+                               (then (and {(if (and (is Empty (last From)) (= (last From) "Center"))
+                                             (add (piece "cross0") (to (last From)))) 
+                                           (set Var "moveType" "Vertical") 
+                                           (moveAgain)}))))
+
+(define "SpiderMoveFst" (or {("SpiderMoveFstH")
+                             ("SpiderMoveFstV")}))
+
+(define "SpiderMoveSnd" (if (= (var "moveType") "Horizontal")
+                          (move Slide (union Forward Backward))
+                          (if (= (var "moveType") "Vertical")
+                            (move Slide (union Leftward Rightward))
+                            (move Slide))
+                          (then (add (piece "cross0") (to (last From))))))
+
+(game "A Dance Of Spiders"
+      (players 2)
+
+      (equipment {(board (add (concentric Square rings:3 joinCorners:True) vertices:{{0 0}} connect:True) use:Vertex)
+                  
+                  (piece "spider" Each)
+                  (piece "cross" Neutral)})
+      
+      (rules (start (place Stack items:{"spider2" "spider1"} coord:"D4"))
+      
+             (play (if (is Even (count Moves))
+                     (forEach Piece "SpiderMoveFst")
+                     (forEach Piece "SpiderMoveSnd")))
+
+             (end (if (no Moves Mover) (result Mover Loss)))))
+
+(metadata (graphics {(piece Rename piece:"spider" "counter_isometric")}))
