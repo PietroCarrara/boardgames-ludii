@@ -1,8 +1,12 @@
-(define "Center" 24) // Center vertex index
+(define "Center" 24) // Center vertex index (= boardRings * 8)
 
 (define "Horizontal" 1)
 (define "Vertical" 2)
 (define "Diagonal" 3)
+
+(define "MoveDiagonal" (move Slide FL) (move Slide FR) (move Slide BL) (move Slide BR))
+(define "MoveHorizontal" (move Slide Leftward) (move Slide Rightward))
+(define "MoveVertical" (move Slide Forward) (move Slide Backward))
 
 (define "SpiderMoveFstH" (move Slide
                                (union Leftward Rightward)
@@ -11,21 +15,26 @@
                                            (set Var "moveType" "Horizontal") 
                                            (moveAgain)}))))
 
-(define "SpiderMoveFstV" (move Slide 
+(define "SpiderMoveFstV" (move Slide
                                (union Forward Backward)
-                               (then (and {(if (and (is Empty (last From)) (= (last From) "Center"))
-                                             (add (piece "cross0") (to (last From)))) 
-                                           (set Var "moveType" "Vertical") 
+                               (then (and {(set Var "moveType" "Vertical")
                                            (moveAgain)}))))
 
+(define "SpiderMoveFstD" (or {("MoveDiagonal")}
+                             (then (and {(set Var "moveType" "Diagonal")
+                                         (moveAgain)}))))
+
 (define "SpiderMoveFst" (or {("SpiderMoveFstH")
-                             ("SpiderMoveFstV")}))
+                             ("SpiderMoveFstV")
+                             ("SpiderMoveFstD")}
+                            (then (if (and (is Empty (last From)) (= (last From) "Center"))
+                                    (add (piece "cross0") (to (last From)))))))
 
 (define "SpiderMoveSnd" (if (= (var "moveType") "Horizontal")
-                          (move Slide (union Forward Backward))
+                          (or {("MoveVertical") ("MoveDiagonal")})
                           (if (= (var "moveType") "Vertical")
-                            (move Slide (union Leftward Rightward))
-                            (move Slide))
+                            (or {("MoveHorizontal") ("MoveDiagonal")})
+                            (or {("MoveHorizontal") ("MoveVertical")}))
                           (then (add (piece "cross0") (to (last From))))))
 
 (game "A Dance Of Spiders"
